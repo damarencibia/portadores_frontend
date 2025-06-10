@@ -39,7 +39,7 @@ router.beforeEach((to) => {
   
   // Redirigir a products si ya está autenticado
   if (!authRequired && token) {
-    return '/products'
+    return '/home'
   }
 })
 

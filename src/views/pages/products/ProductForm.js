@@ -36,13 +36,13 @@ export const submitProduct = async (productData) => {
     }
 };
 
-export const fetchCategories = async () => {
+export const fetchChoferes = async () => {
     try {
-        const response = await $axios.get('/categories/get-names');
+        const response = await $axios.get('/choferes/get-names');
         return {
             success: true,
             data: response.data.data.map(cat => ({
-                title: cat.name,
+                title: cat.nombre,
                 value: cat.id
             }))
         };
@@ -85,9 +85,9 @@ export const fetchSubcategories = async (categoryId) => {
     }
 };
 
-export const fetchProductById = async (id) => {
+export const fetchVechicleById = async (id) => {
     try {
-        const response = await $axios.get(`/products/${id}`);
+        const response = await $axios.get(`/vehiculos/${id}`);
 
         if (response.data?.success && response.data?.data) {
             const productData = response.data.data;
@@ -95,24 +95,18 @@ export const fetchProductById = async (id) => {
             return {
                 success: true,
                 data: {
-                    code: productData.code,
-                    name: productData.name,
-                    description: productData.description,
-                    price: productData.price,
-                    amount: productData.amount,
-                    saled: productData.saled,
-                    state: productData.state,
-                    dimension: productData.dimension,
-                    weight: productData.weight,
-                    capacity: productData.capacity,
-                    color: productData.color || [''],
-                    category_id: productData.category_id || productData.category?.id || null,
-                    subcategory_id: productData.subcategory_id || productData.subcategory?.id || null,
-                    visible: Boolean(productData.visible), // Asegurar valor booleano
-                    destacated: Boolean(productData.destacated), // Asegurar valor booleano
-                    category: productData.category,
-                    subcategory: productData.subcategory,
-                    images: productData.images || [],
+                    numero_interno: productData.numero_interno,
+                    marca: productData.marca,
+                    modelo: productData.modelo,
+                    tipo_vehiculo: productData.tipo_vehiculo,
+                    ano : productData.ano,
+                    tipo_combustible_id: productData.tipo_combustible_id,
+                    indice_consumo: productData.indice_consumo,
+                    prueba_litro: productData.prueba_litro,
+                    capacidad_tanque: productData.capacidad_tanque,
+                    ficav: productData.ficav,
+                    tipo_vehiculo: productData.tipo_vehiculo || productData.tipo_vehiculo?.id || null,
+
                 },
                 message: response.data.message
             };

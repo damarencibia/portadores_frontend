@@ -1,3 +1,5 @@
+// vertical nav items
+
 export default [
   {
     title: 'Home',
@@ -7,12 +9,12 @@ export default [
 
   { heading: 'Inventario' },
   {
-    title: 'Productos',
-    to: { name: 'products' },
-    icon: { icon: 'ri-instance-line' },
+    title: 'Vehiculos',
+    to: { name: 'vehiculos' },
+    icon: { icon: 'ri-car-line' },
   },
   {
-    title: 'Categorías',
+    title: 'Tarjetas de combustible',
     to: { name: 'categories' },
     icon: { icon: 'ri-list-indefinite' },
   },

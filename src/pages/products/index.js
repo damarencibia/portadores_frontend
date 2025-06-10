@@ -1,11 +1,11 @@
-    export const fetchProducts = async (page, itemsPerPage, sortBy, orderBy, selectedCategory, selectedSubCategory, searchTerm, selectedDestacated, selectedVisible) => {
+    export const fetchVechicles = async (page, itemsPerPage, sortBy, orderBy, selectedCategory, selectedSubCategory, searchTerm, selectedDestacated, selectedVisible) => {
         let message = null;
         let success = null;
         let data = null;
         let meta = null;
 
         try {
-            const request = await $axios.get(`/products`, {
+            const request = await $axios.get(`/vehiculos`, {
                 params: {
                     page,
                     itemsPerPage,
@@ -35,14 +35,14 @@
 
     }
 
-    export const fetchFilters = async () => {
+    export const fetchChoferNames = async () => {
         let message = null;
         let success = null;
         let data = null;
         let meta = null;
 
         try {
-            const request = await $axios.get(`/categories/get-names`,)
+            const request = await $axios.get(`/choferes/get-names`,)
             
             success = request?.data?.success;
             data = request?.data?.data
@@ -59,13 +59,13 @@
         }
     }
 
-    export const updateProduct = async (productId, data) => {
+    export const updateVehicle = async (vehicleId, data) => {
         let message = null;
         let success = null;
         let responseData = null;
     
         try {
-            const request = await $axios.put(`/products/${productId}`, data);
+            const request = await $axios.put(`/products/${vehicleId}`, data);
             
             success = request?.data?.success;
             responseData = request?.data?.data;

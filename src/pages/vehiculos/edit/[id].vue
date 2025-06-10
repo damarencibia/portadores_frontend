@@ -9,6 +9,6 @@ const route = useRoute();
 <template>
   <VehiculoForm 
     :action="VEHICULO_ACTIONS.EDIT" 
-    :productId="Number(route.params.id)" 
+    :vehiculoId="Number(route.params.id)" 
   />
 </template>

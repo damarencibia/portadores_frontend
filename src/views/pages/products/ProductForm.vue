@@ -4,9 +4,9 @@ import ConfirmDeleteDialog from '@/pages/components/ConfirmDeleteDialog.vue';
 import {
   fetchNextProductCode,
   submitProduct,
-  fetchCategories,
+  fetchChoferes,
   fetchSubcategories,
-  fetchProductById,
+  fetchVechicleById,
   updateProduct,
   deleteProduct
 } from './ProductForm';
@@ -39,12 +39,13 @@ const form = ref(null);
 // Opciones para selects
 const states = ref(['Disponible', 'Agotado']);
 const categories = ref([]);
+const tipos_vechiculos = ['auto', 'camión', 'camioneta', 'moto'];
 const subcategories = ref([]);
 
 // Estado del formulario con valores iniciales
 const tipoPeso = ref(null);
 const formData = ref({
-  code: null,
+  numero_interno: null,
   name: null,
   description: null,
   price: null,
@@ -55,7 +56,7 @@ const formData = ref({
   weight: null,
   capacity: null,
   color: [],
-  category_id: null,
+  tipo_vehiculo: null,
   subcategory_id: null
 });
 
@@ -71,37 +72,10 @@ const toogleShowConfirmDelete = () => {
 }
 
 
-/**
-* Carga los datos iniciales necesarios para el formulario
-*/
-const loadInitialData = async () => {
-  try {
-
-    // Solo cargar código para creación de productos
-    if (props.action === PRODUCT_ACTIONS.CREATE) {
-      const codeResponse = await fetchNextProductCode();
-      if (codeResponse.success) {
-        formData.value.code = codeResponse.data.next_code;
-      } else {
-        giveMeASnack({
-          message: codeResponse.message,
-          color: 'error'
-        })
-      }
-    }
-  } catch (error) {
-    giveMeASnack({
-      message: "Error al cargar los datos iniciales",
-      color: 'error'
-    })
-    console.error(error);
-  }
-};
-
 // Función separada para cargar categorías
-const loadCategories = async () => {
+const loadChoferes = async () => {
   try {
-    const catResponse = await fetchCategories();
+    const catResponse = await fetchChoferes();
     if (catResponse.success) {
       categories.value = catResponse.data;
     } else {
@@ -126,7 +100,7 @@ const loadProductById = async () => {
   try {
     isLoading.value = true;
 
-    const productResponse = await fetchProductById(props.productId);
+    const productResponse = await fetchVechicleById(props.productId);
     if (productResponse.success) {
       // Asignar todos los datos del producto al formulario
       formData.value = {
@@ -134,20 +108,9 @@ const loadProductById = async () => {
         color: productResponse.data.color || [''],
       };
 
-      imageStore.setImages(productResponse.data.images || []);
-
-      // Asignar estados de los checkboxes
-      visible.value = Boolean(productResponse.data.visible);
-      destacated.value = Boolean(productResponse.data.destacated);
-
-
-      // Cargar subcategorías para la categoría del producto
-      if (productResponse.data.category_id) {
-        const subcatResponse = await fetchSubcategories(productResponse.data.category_id);
-        if (subcatResponse.success) {
-          subcategories.value = subcatResponse.data;
-        }
-      }
+      // // Asignar estados de los checkboxes
+      // visible.value = Boolean(productResponse.data.visible);
+      // destacated.value = Boolean(productResponse.data.destacated);
     } else {
       giveMeASnack({
         message: productResponse.message || "Error al cargar el producto",
@@ -169,10 +132,7 @@ const loadProductById = async () => {
 onMounted(async () => {
   try {
     // 1. Cargar categorías (siempre necesario)
-    await loadCategories();
-
-    // 2. Cargar datos iniciales (código de producto)
-    await loadInitialData();
+    await loadChoferes();
 
     // 3. Si hay productId, cargar el producto
     if (props.productId) {
@@ -232,30 +192,6 @@ const canWrite = computed(() =>
   [PRODUCT_ACTIONS.CREATE, PRODUCT_ACTIONS.EDIT].includes(props.action)
 );
 
-
-// Watcher para cargar subcategorías cuando cambia la categoría
-watch(() => formData.value.category_id, async (newVal, oldVal) => {
-  if (newVal && newVal !== oldVal) {
-    try {
-      const response = await fetchSubcategories(newVal);
-      if (response.success) {
-        subcategories.value = response.data;
-        // Mantener subcategoría seleccionada si es válida
-        if (formData.value.subcategory_id &&
-          !response.data.some(sub => sub.value === formData.value.subcategory_id)) {
-          formData.value.subcategory_id = null;
-        }
-      }
-    } catch (error) {
-      giveMeASnack({
-        message: "Error al cargar las subcategorías ",
-        color: 'error'
-      })
-      console.error("Error loading subcategories:", error);
-    }
-  }
-}, { immediate: true });
-
 /**
 * Maneja la eliminación de campos de color
 * @param {number} index - Índice del color a eliminar
@@ -280,19 +216,11 @@ const resetForm = async () => {
     weight: 0,
     capacity: '',
     color: [''],
-    category_id: null,
+    tipo_vehiculo: null,
     subcategory_id: null
   };
   visible.value = false;
   destacated.value = false;
-
-  // Recargar código para nuevo producto
-  if (props.action === PRODUCT_ACTIONS.CREATE) {
-    const codeResponse = await fetchNextProductCode();
-    if (codeResponse.success) {
-      formData.value.code = codeResponse.data.next_code;
-    }
-  }
 };
 
 /**
@@ -425,13 +353,13 @@ const dialogSubcategory = ref(false)
 const showCategoryDialog = ref(false)
 const toggleCategoryDialog = (success = null) => {
   showCategoryDialog.value = !showCategoryDialog.value
-  success ? loadCategories() : null
+  success ? loadChoferes() : null
 }
 
 const toggleSubcategoryDialog = async (success = null) => {
   dialogSubcategory.value = !dialogSubcategory.value
   if (success) {
-    subcategories.value = (await fetchSubcategories(formData.value.category_id)).data
+    subcategories.value = (await fetchSubcategories(formData.value.tipo_vehiculo)).data
   }
 }
 </script>
@@ -466,28 +394,17 @@ const toggleSubcategoryDialog = async (success = null) => {
           <VCard class="mb-6" title="Información del Producto">
             <VCardText>
               <VRow>
-                <VCol cols="12" md="2">
-                  <VTextField v-model="formData.code" label="Código" readonly />
-                </VCol>
-
-                <VCol cols="12" md="6">
-                  <VTextField v-model="formData.name" label="Nombre*" placeholder="Nombre del prodcuto"
-                    :rules="[...rules.required, ...rules.string]" :readonly="!canWrite" />
+                <VCol cols="12" md="4">
+                  <VTextField v-model="formData.numero_interno" label="Código Interno" />
                 </VCol>
 
                 <VCol cols="12" md="4">
-                  <VTextField v-model="formData.price" label="Precio*" :readonly="!canWrite" :rules="[
-                    ...rules.numeric,
-                    v => v >= 0 || 'El precio no puede ser negativo'
-                  ]" />
-                </VCol>
-                <VCol cols="12">
-                  <v-textarea :readonly="!canWrite" label="Descripción" v-model="formData.description"
-                    variant="outlined" placeholder="Descripción detallada del producto..." class="mt-1 rounded"
-                    auto-grow></v-textarea>
-
+                  <VTextField v-model="formData.marca" label="Marca" placeholder="Marca"/>
                 </VCol>
 
+                <VCol cols="12" md="4">
+                  <VTextField v-model="formData.modelo" label="Modelo"/>
+                </VCol>
 
                 <VCol cols="12" md="6">
                   <VTextField v-model="formData.amount" label="Cantidad Total*" :readonly="!canWrite" :rules="[
@@ -564,18 +481,18 @@ const toggleSubcategoryDialog = async (success = null) => {
             <VCardText>
               <div class="d-flex flex-column gap-y-4">
                 <div class="d-flex justify-between align-center gap-3">
-                  <VAutocomplete v-model="formData.category_id" label="Categoría*" :items="categories"
+                  <VAutocomplete v-model="formData.category_id" label="Chofer" :items="categories"
                     item-title="title" item-value="value" :rules="[...rules.required]" :readonly="!canWrite" clearable
                     :disabled="isLoading" />
                   <v-btn v-if="props.action != 'SHOW'" color="primary" @click="toggleCategoryDialog"
                     icon="ri-add-line"></v-btn>
                 </div>
                 <div class="d-flex justify-between align-center gap-3">
-                  <VAutocomplete v-model="formData.subcategory_id" label="Subcategoría*" :items="subcategories"
+                  <VAutocomplete v-model="formData.tipo_vehiculo" label="Tipo vehículo" :items="tipos_vechiculos"
                     item-title="title" item-value="value" :rules="[...rules.required]" :readonly="!canWrite" clearable
-                    :disabled="!formData.category_id" />
-                  <v-btn v-if="props.action != 'SHOW'" color="primary" icon="ri-add-line"
-                    :disabled="!formData.category_id" @click="toggleSubcategoryDialog"></v-btn>
+                    :disabled="isLoading" />
+                  <v-btn v-if="props.action != 'SHOW'" color="primary" @click="toggleCategoryDialog"
+                    icon="ri-add-line"></v-btn>
                 </div>
               </div>
             </VCardText>
@@ -596,12 +513,7 @@ const toggleSubcategoryDialog = async (success = null) => {
           </VCard>
         </VCol>
         <v-col cols="12" md="8">
-          <!-- 👉 Imágenes del Producto -->
-          <VCard class="mb-6" title="Imágenes del Producto">
-            <VCardText>
-              <DropZone :images="formData.images" :readonly="props.action == 'SHOW' ? true : false" />
-            </VCardText>
-          </VCard>
+
         </v-col>
       </VRow>
     </v-form>

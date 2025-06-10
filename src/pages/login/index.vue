@@ -122,7 +122,7 @@ const handleLogin = async () => {
         : 'US'
     }
 
-    router.push('/products')
+    router.push('/')
   } catch (error) {
     errorMessage.value = error.message
     console.error('Login error:', error)
@@ -133,7 +133,7 @@ const handleLogin = async () => {
 
 onMounted(() => {
   if (isAuthenticated()) {
-    router.replace('/products')
+    router.replace('/')
   }
 })
 </script>

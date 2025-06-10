@@ -1,7 +1,7 @@
   <script setup>
   import { onMounted, ref, watch } from 'vue'
   import { $axios } from '../../utils/api'
-  import { fetchFilters, fetchProducts, updateProduct } from './index'
+  import { fetchFilters, fetchVechicles, updateVehicle } from './index'
   import { debounce } from 'lodash';
   import { onClickOutside } from '@vueuse/core';
   import { useRouter } from 'vue-router';
@@ -16,19 +16,21 @@
 
   //data table
   const headers = ref([
-    { title: "Código", text: "Código", value: "code" },
-    { title: "Nombre", text: "Nombre", value: "name" },
-    { title: "Descripción", text: "Descripción", value: "description" },
-    { title: "Precio", text: "Precio", value: "price" },
-    { title: "Cantidad Total", text: "Cantidad", value: "amount", align: 'center' },
-    { title: "Cantidad Vendida", text: "Cantidad", value: "saled", align: 'center' },
-    { title: "Visible", text: "Visible", value: "visible" },
-    { title: "Destacado", text: "Destacado", value: "destacated" },
-    { title: "Estado", text: "Estado", value: "state" },
-    { title: "Dimensiones", text: "Dimensiones", value: "dimension" },
-    { title: "Peso", text: "Peso", value: "weight" },
-    { title: "Capacidad", text: "Capacidad", value: "capacity" },
-    { title: "Color", text: "Color", value: "color" },
+    { title: "numero interno", text: "numero_interno", value: "numero_interno" },
+    { title: "marca", text: "marca", value: "marca" },  
+    { title: "modelo", text: "modelo", value: "modelo" },
+    { title: "Año ", text: "ano", value: "ano"},
+    { title: "tipo combustible", text: "tipo_combustible_id", value: "tipo_combustible_id", align: 'center'},
+    { title: "indice consumo", text: "indice_consumo", value: "indice_consumo" },
+    { title: "prueba litro", text: "prueba_litro", value: "prueba_litro" },
+    { title: "ficav", text: "ficav", value: "ficav", align: 'center' },
+    { title: "capacidad tanque", text: "capacidad_tanque", value: "capacidad_tanque", align: 'center' },
+    { title: "color", text: "color", value: "color" },
+    { title: "numero motor", text: "numero_motor", value: "numero_motor" },
+    { title: "empresa", text: "empresa_id", value: "empresa_id", align: 'center' },
+    { title: "numero chasis", text: "numero_chasis", value: "numero_chasis" },
+    { title: "chofer", text: "chofer_id", value: "chofer_id" },
+    { title: "estado tecnico", text: "estado_tecnico", value: "estado_tecnico" },
     { title: 'Actions', key: 'actions', sortable: false, },
   ]);
 
@@ -73,7 +75,7 @@
       // Cambio optimista
       currentProduct.destacated = newValue;
 
-      const response = await updateProduct(product.id, {
+      const response = await updateVehicle(product.id, {
         destacated: newValue
       });
 
@@ -118,7 +120,7 @@
       // Cambio optimista
       currentProduct.visible = newValue;
 
-      const response = await updateProduct(product.id, {
+      const response = await updateVehicle(product.id, {
         visible: newValue
       });
 
@@ -161,7 +163,7 @@
 
     try {
       // 2) Pasa el product.id real
-      const response = await updateProduct(product.id, { saled: product.saled_modified })
+      const response = await updateVehicle(product.id, { saled: product.saled_modified })
       // 3) Si funciona, actualiza el array
       if (response?.success) {
         const p = products.value.find(p => p.id === product.id)
@@ -211,7 +213,7 @@
   //functions
   const getProducts = async () => {
     loading.value = true;
-    const response = await fetchProducts(
+    const response = await fetchVechicles(
       pagination.value.page,
       pagination.value.itemsPerPage,
       pagination.value.sortBy,
@@ -277,8 +279,8 @@
   const router = useRouter();
 
   // Función específica para navegar a detalles
-  const goToProductDetails = (productId) => {
-    router.push(`/products/details/${productId}`);
+  const goToProductDetails = (vehicleId) => {
+    router.push(`/products/details/${vehicleId}`);
   };
 
   watch([selectedCategory, selectedSubCategory], () => {
