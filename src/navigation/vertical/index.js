@@ -15,7 +15,7 @@ export default [
   },
   {
     title: 'Tarjetas de combustible',
-    to: { name: 'categories' },
+    to: { name: 'tarjetas' },
     icon: { icon: 'ri-list-indefinite' },
   },
 

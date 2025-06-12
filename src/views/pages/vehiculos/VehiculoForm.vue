@@ -174,8 +174,11 @@ const handleDelete = async () => {
             color="secondary">Atrás
           </VBtn>
           <v-btn v-if="props.action !== 'SHOW'" type="submit">{{ btnTitle }}</v-btn>
-          <v-btn v-if="props.action !== 'SHOW'" variant="outlined" @click="goToProductDetails()">Cancelar</v-btn>
           <v-btn v-else type="submit">{{ btnTitle }}</v-btn>
+          <v-btn v-if="props.action !== 'CREATE' && props.action !== 'SHOW'" variant="outlined"
+            @click="goToProductDetails()">
+            Cancelar
+          </v-btn>
 
 
           <v-dialog width="80vh" v-model="showConfirmDelete">
@@ -234,8 +237,8 @@ const handleDelete = async () => {
           <v-card-text>
             <!-- Chofer -->
             <v-col cols="12">
-              <VSelect v-model="formData.chofer_id" :items="choferes" item-title="nombre" item-value="id" label="Chofer"
-                :readonly="!canWrite" />
+              <VAutocomplete v-model="formData.chofer_id" :items="choferes" item-title="nombre" item-value="id" label="Chofer"
+              clearable return-object :readonly="!canWrite"/>
             </v-col>
             <!-- Tipo Vehículo -->
             <v-col cols="12">
@@ -257,7 +260,8 @@ const handleDelete = async () => {
       </v-col>
     </v-row>
     <div class="d-flex justify-end ">
-      <v-btn v-if="props.action === 'EDIT'" icon="ri-delete-bin-line" color="error" variant="text" @click="toogleShowConfirmDelete"></v-btn>
+      <v-btn v-if="props.action === 'EDIT'" icon="ri-delete-bin-line" color="error" variant="text"
+        @click="toogleShowConfirmDelete"></v-btn>
     </div>
   </v-form>
 </template>
