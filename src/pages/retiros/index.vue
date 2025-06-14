@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted, ref, watch, inject } from 'vue' // Asegúrate de importar inject
-import { fetchChoferNames, fetchTipoCombustibles, fetchCharges, fetchTarjetas, fetchUsersByEnterprise } from './index'
-import { submitCargaCombustible } from '@/views/pages/tarjetas/TarjetaForm'
-import CargaCombustibleDialog from '@/pages/components/CargaCombustibleDialog.vue'
+import { fetchChoferNames, fetchTipoCombustibles, fetchWithdrawals, fetchTarjetas, fetchUsersByEnterprise } from './index' // Changed fetchCharges to fetchWithdrawals
+import { submitRetiroCombustible } from '@/views/pages/tarjetas/TarjetaForm' // Assuming you'll have a submitRetiroCombustible function
+import RetiroCombustibleDialog from '@/pages/components/RetiroCombustibleDialog.vue' // New dialog component for withdrawals
 import SelectTarjetaDialog from '@/pages/components/SelectTarjetaDialog.vue'
 import { getStoredUser } from '@/utils/api'
 import { debounce } from 'lodash';
@@ -62,7 +62,7 @@ const estadoColor = (item) => {
 
 // Debounce para la búsqueda en tiempo real (300ms de delay)
 const debouncedSearch = debounce(() => {
-  getCharges() // Debe llamarse sin parámetros
+  getWithdrawals() // Changed function call
 }, 300)
 
 // Manejar cambios en el input de búsqueda
@@ -71,7 +71,7 @@ const onSearchInput = () => {
   debouncedSearch();
 };
 
-const charges = ref([])
+const withdrawals = ref([]) // Changed from charges to withdrawals
 const totalProduct = ref(0)
 
 // Data table options
@@ -81,7 +81,7 @@ const updateOptions = options => {
   pagination.value.orderBy = options.sortBy[0]?.order
   pagination.value.page = options.page
   pagination.value.itemsPerPage = options.itemsPerPage
-  getCharges()
+  getWithdrawals() // Changed function call
 }
 
 //filters
@@ -100,9 +100,9 @@ const selectedTarjeta = ref(null);
 const selectedUsuario = ref(null);
 
 //functiones load
-const getCharges = async () => {
+const getWithdrawals = async () => { // Changed function name
   loading.value = true;
-  const response = await fetchCharges(
+  const response = await fetchWithdrawals( // Changed fetchCharges to fetchWithdrawals
     pagination.value.page,
     pagination.value.itemsPerPage,
     search.value,
@@ -118,7 +118,7 @@ const getCharges = async () => {
     return;
   }
 
-  charges.value = response.data.map((item) => {
+  withdrawals.value = response.data.map((item) => { // Changed charges to withdrawals
     return { ...item };
   });
 
@@ -157,7 +157,7 @@ const loadTarjetas = async () => {
     console.log(listaTarjetas.value);
 
   } catch {
-    giveMeASnack({ message: 'Error cargando tipos de combustible', color: 'error' });
+    giveMeASnack({ message: 'Error cargando tarjetas de combustible', color: 'error' }); // Adjusted message
   }
 };
 
@@ -169,28 +169,28 @@ const loadUsuarios = async () => {
     console.log(listaUsuarios.value);
 
   } catch {
-    giveMeASnack({ message: 'Error cargando tipos de combustible', color: 'error' });
+    giveMeASnack({ message: 'Error cargando usuarios', color: 'error' }); // Adjusted message
   }
 };
 
 const router = useRouter();
 
-const goToCargasEdit = (cargaId) => {
-  router.push(`/cargas/edit/${cargaId}`);
+const goToWithdrawalsEdit = (withdrawalId) => { // Changed function name and route
+  router.push(`/retiros/edit/${withdrawalId}`); // Changed route
 };
 
 // observadores
 watch([selectedChofer, selectedTipoCombustible, selectedTarjeta, selectedUsuario, mostrarEliminados], () => {
-  getCharges();
+  getWithdrawals(); // Changed function call
 });
 
 watch(search, () => {
   debouncedSearch()
 })
 
-/* variables pertenecientes a CargaCombustibleDialog**************************/
+/* variables pertenecientes a RetiroCombustibleDialog**************************/ // Changed comment
 const showTarjetaSelectDialog = ref(false)
-const showCargaDialog = ref(false)
+const showRetiroDialog = ref(false) // Changed showCargaDialog to showRetiroDialog
 const tarjetaSeleccionada = ref(null) // objeto completo
 const userId = ref(getStoredUser()?.id || null)
 
@@ -200,7 +200,7 @@ const formData = ref({
   precioCombustible: null
 })
 
-// Cuando se confirme la tarjeta, abre el diálogo de carga
+// Cuando se confirme la tarjeta, abre el diálogo de retiro // Changed comment
 const onTarjetaSeleccionada = (tarjeta) => {
   tarjetaSeleccionada.value = tarjeta
   formData.value.tipo_combustible_id = tarjeta.tipo_combustible_id
@@ -209,18 +209,18 @@ const onTarjetaSeleccionada = (tarjeta) => {
   showTarjetaSelectDialog.value = false
   console.log(tarjetaSeleccionada.value);
 
-  showCargaDialog.value = true
+  showRetiroDialog.value = true // Changed showCargaDialog to showRetiroDialog
 }
 
-// Registrar carga de combustible
-const registrarCarga = async (payload) => {
-  const res = await submitCargaCombustible(payload);
+// Registrar retiro de combustible // Changed comment
+const registrarRetiro = async (payload) => { // Changed function name
+  const res = await submitRetiroCombustible(payload); // Changed submitCargaCombustible to submitRetiroCombustible
   if (res.success) {
-    giveMeASnack({ message: 'Carga registrada correctamente', color: 'success' });
-    showCargaDialog.value = false
+    giveMeASnack({ message: 'Retiro registrado correctamente', color: 'success' }); // Adjusted message
+    showRetiroDialog.value = false // Changed showCargaDialog to showRetiroDialog
 
-    // 👇 Recarga las cargas después de registrar
-    getCharges()
+    // 👇 Recarga los retiros después de registrar // Adjusted comment
+    getWithdrawals() // Changed function call
   } else {
     giveMeASnack({ message: res.message, color: 'error' });
   }
@@ -229,7 +229,7 @@ const registrarCarga = async (payload) => {
 
 
 onMounted(() => {
-  getCharges()
+  getWithdrawals() // Changed function call
   loadChoferes();
   loadTiposCombustible();
   loadTarjetas();
@@ -240,8 +240,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <VCard title="Filtros">
-      <VCardText>
+    <VCard title="Filtros de Retiros de Combustible"> <VCardText>
         <VRow>
           <VCol cols="12" sm="3">
             <VAutocomplete v-model="selectedChofer" :items="choferes" item-title="nombre" item-value="id" label="Chofer"
@@ -271,27 +270,22 @@ onMounted(() => {
       <VCardText class="d-flex justify-space-between gap-4">
         <VRow class="w-100">
           <VCol cols="12" sm="6">
-            <VTextField v-model="search" @input="onSearchInput" placeholder="Buscar registros" density="compact"
-              prepend-inner-icon="ri-search-line" clearable />
-          </VCol>
+            <VTextField v-model="search" @input="onSearchInput" placeholder="Buscar retiros" density="compact"
+              prepend-inner-icon="ri-search-line" clearable /> </VCol>
           <v-col cols="12" md="3">
-            <v-switch v-model="mostrarEliminados" label="Ver eliminados" color="primary" @change="getCharges" inset
-              density="compact" />
-          </v-col>
+            <v-switch v-model="mostrarEliminados" label="Ver eliminados" color="primary" @change="getWithdrawals" inset
+              density="compact" /> </v-col>
 
           <VCol class="d-flex justify-end" cols="12" sm="3">
             <VBtn color="primary" prepend-icon="ri-add-line" @click="showTarjetaSelectDialog = true">
-              Añadir Carga
-            </VBtn>
+              Añadir Retiro </VBtn>
 
             <SelectTarjetaDialog v-model="showTarjetaSelectDialog" :tarjetas="listaTarjetas"
               @select="onTarjetaSeleccionada" @cancel="showTarjetaSelectDialog = false" clearable />
 
-            <v-dialog v-model="showCargaDialog" width="auto">
-              <CargaCombustibleDialog :tarjetaId="tarjetaSeleccionada?.id" :registradoPorId="userId"
-                :saldoActual="formData.saldo_monetario_actual" @cancel="showCargaDialog = false"
-                @confirm="registrarCarga" />
-            </v-dialog>
+            <v-dialog v-model="showRetiroDialog" width="auto"> <RetiroCombustibleDialog :tarjetaId="tarjetaSeleccionada?.id" :registradoPorId="userId"
+                :saldoActual="formData.saldo_monetario_actual" @cancel="showRetiroDialog = false"
+                @confirm="registrarRetiro" /> </v-dialog>
 
 
           </VCol>
@@ -299,10 +293,8 @@ onMounted(() => {
       </VCardText>
 
       <VDataTableServer :items-per-page="pagination.itemsPerPage" :page="pagination.page" :headers="headers"
-        :loading="loading" loading-text="Cargando..." :items="charges" :items-length="totalProduct"
-        class="text-no-wrap rounded-0" @update:options="updateOptions">
-
-        <template v-slot:loading>
+        :loading="loading" loading-text="Cargando..." :items="withdrawals" :items-length="totalProduct"
+        class="text-no-wrap rounded-0" @update:options="updateOptions"> <template v-slot:loading>
           <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
         </template>
 
@@ -320,8 +312,7 @@ onMounted(() => {
         </template>
 
         <template #item.actions="{ item }">
-          <v-btn variant="text" @click="goToCargasEdit(item.id)" icon="ri-eye-line"></v-btn>
-        </template>
+          <v-btn variant="text" @click="goToWithdrawalsEdit(item.id)" icon="ri-eye-line"></v-btn> </template>
 
       </VDataTableServer>
     </VCard>

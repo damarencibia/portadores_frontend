@@ -194,14 +194,22 @@ watch(() => props.tarjetaId, nuevoId => {
 const emit = defineEmits(['cancel', 'confirm'])
 
 const submit = () => {
+  let hora = form.value.hora ?? ''
+  if (hora.length >= 5) {
+    hora = hora.substring(0, 5) // recorta a H:M
+  }
+
   const payload = {
     ...form.value,
+    hora, // ya limpio
     registrado_por_id: props.registradoPorId,
     tarjeta_combustible_id: props.tarjetaId,
     cantidad: form.value.cantidad,
     importe: parseFloat(importe.value),
-    estado: 'Pendiente'
+    estado: 'pendiente'
   }
+
   emit('confirm', payload)
 }
+
 </script>

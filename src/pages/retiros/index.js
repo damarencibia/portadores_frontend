@@ -1,11 +1,11 @@
-export const fetchCharges = async (page, itemsPerPage,search,tarjeta_combustible_id,chofer_id,tipo_combustible_id,registrado_por_id,with_trashed) => {
+export const fetchWithdrawals = async (page, itemsPerPage, search, tarjeta_combustible_id, chofer_id, tipo_combustible_id, registrado_por_id, with_trashed) => {
     let message = null;
     let success = null;
     let data = null;
     let meta = null;
 
     try {
-        const request = await $axios.get(`/carga-combustibles`, {
+        const request = await $axios.get(`/retiros-combustible`, { // Changed endpoint here
             params: {
                 page,
                 itemsPerPage,
@@ -25,13 +25,12 @@ export const fetchCharges = async (page, itemsPerPage,search,tarjeta_combustible
         return { success, message, data, meta }
 
     } catch (error) {
-        message = error?.response?.data?.message || error || "Ocurrió un error al actualizar el evento";
+        message = error?.response?.data?.message || error || "Ocurrió un error al obtener los retiros de combustible"; // Adjusted error message
 
         success = false;
         return { success, message, data, meta }
 
     }
-
 }
 
 export const fetchChoferNames = async () => {
@@ -42,7 +41,7 @@ export const fetchChoferNames = async () => {
 
     try {
         const request = await $axios.get(`/choferes/get-names`,)
-        
+
         success = request?.data?.success;
         data = request?.data?.data
         message = request?.data?.message;
@@ -50,7 +49,7 @@ export const fetchChoferNames = async () => {
         return { success, message, data, meta }
 
     } catch (error) {
-        message = error?.response?.data?.message || error || "Ocurrió un error al actualizar el evento";
+        message = error?.response?.data?.message || error || "Ocurrió un error al obtener los nombres de los choferes"; // Adjusted error message
 
         success = false;
         return { success, message, data, meta }
@@ -66,7 +65,7 @@ export const fetchTarjetas = async () => {
 
     try {
         const request = await $axios.get(`/tarjetas-combustible`,)
-        
+
         success = request?.data?.success;
         data = request?.data?.data
         message = request?.data?.message;
@@ -74,7 +73,7 @@ export const fetchTarjetas = async () => {
         return { success, message, data, meta }
 
     } catch (error) {
-        message = error?.response?.data?.message || error || "Ocurrió un error al actualizar el evento";
+        message = error?.response?.data?.message || error || "Ocurrió un error al obtener las tarjetas de combustible"; // Adjusted error message
 
         success = false;
         return { success, message, data, meta }
@@ -90,7 +89,7 @@ export const fetchTipoCombustibles = async () => {
 
     try {
         const request = await $axios.get(`/tipo-combustibles`,)
-        
+
         success = request?.data?.success;
         data = request?.data?.data
         message = request?.data?.message;
@@ -98,7 +97,7 @@ export const fetchTipoCombustibles = async () => {
         return { success, message, data, meta }
 
     } catch (error) {
-        message = error?.response?.data?.message || error || "Ocurrió un error al actualizar el evento";
+        message = error?.response?.data?.message || error || "Ocurrió un error al obtener los tipos de combustible"; // Adjusted error message
 
         success = false;
         return { success, message, data, meta }
@@ -114,7 +113,7 @@ export const fetchUsersByEnterprise = async () => {
 
     try {
         const request = await $axios.get(`/users/users-by-enterprise`,)
-        
+
         success = request?.data?.success;
         data = request?.data?.data
         message = request?.data?.message;
@@ -122,13 +121,10 @@ export const fetchUsersByEnterprise = async () => {
         return { success, message, data, meta }
 
     } catch (error) {
-        message = error?.response?.data?.message || error || "Ocurrió un error al actualizar el evento";
+        message = error?.response?.data?.message || error || "Ocurrió un error al obtener los usuarios por empresa"; // Adjusted error message
 
         success = false;
         return { success, message, data, meta }
 
     }
 }
-
-
-

@@ -316,8 +316,6 @@ watch(
                 <!-- Límite Consumo Mensual -->
                 <v-col cols="12" md="6"><v-text-field v-model="formData.limite_consumo_mensual"
                     label="Límite Consumo Mensual" required /></v-col>
-
-
               </v-row>
             </v-card-text>
           </v-card>
