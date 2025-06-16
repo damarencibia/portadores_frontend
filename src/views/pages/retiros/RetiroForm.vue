@@ -4,9 +4,9 @@ import ConfirmReasonDeleteDialog from '@/pages/components/ConfirmReasonDeleteDia
 import { getStoredUser } from '@/utils/api';
 import {
   fetchCargaById,
-  validarCarga,
+  validarRetiro,
   destroyCharge
-} from './CargaForm'; // Asegúrate de que la ruta a tu archivo de API sea correcta
+} from './RetiroForm'; // Asegúrate de que la ruta a tu archivo de API sea correcta
 import { useRouter } from 'vue-router';
 
 // INICIALIZACIÓN Y PROPS
@@ -73,7 +73,7 @@ const handleValidation = async () => {
   if (!props.cargaId) return;
   isValidating.value = true;
 
-  const res = await validarCarga(props.cargaId, {
+  const res = await validarRetiro(props.cargaId, {
     valid: true,
     validadoPorId: userId.value,
   });
@@ -102,7 +102,7 @@ const handleRejectConfirmed = async () => {
   if (!props.cargaId) return;
 
   rejectIsLoading.value = true;
-  const res = await validarCarga(props.cargaId, {
+  const res = await validarRetiro(props.cargaId, {
     valid: false,
     validadoPorId: userId.value,
     motivoRechazo: motivoRechazo.value,
@@ -126,8 +126,8 @@ onMounted(async () => {
 
 // --- PROPIEDADES COMPUTADAS ---
 const title = computed(() => {
-  if (props.action === 'EDIT') return 'Editar Carga de Combustible';
-  if (props.action === 'SHOW') return 'Detalles de Carga de Combustible';
+  if (props.action === 'EDIT') return 'Editar Salida de Combustible';
+  if (props.action === 'SHOW') return 'Salida de Combustible';
   return 'Añadir Carga';
 });
 
@@ -163,7 +163,7 @@ async function handleDelete(reason) {
       </v-col>
       <v-col cols="12" md="6">
         <div class="d-flex gap-2 justify-start justify-md-end">
-          <VBtn variant="outlined" prepend-icon="ri-arrow-left-line" @click="router.push('/cargas')" color="secondary">
+          <VBtn variant="outlined" prepend-icon="ri-arrow-left-line" @click="router.push('/retiros')" color="secondary">
             Atrás
           </VBtn>
         </div>
@@ -172,7 +172,7 @@ async function handleDelete(reason) {
 
     <v-row>
       <v-col cols="12" md="7">
-        <v-card class="mb-5" width="100%" title="Información de la Carga">
+        <v-card class="mb-5" width="100%" title="Información de la Salida">
           <template #append>
             <v-alert v-if="formData.estado === 'pendiente'" density="compact" type="warning" variant="tonal">
               {{ formData.estado }}
@@ -204,24 +204,13 @@ async function handleDelete(reason) {
           </v-card-text>
         </v-card>
 
-        <v-card class="mb-5" width="100%" title="Saldos Monetarios">
-          <v-card-text>
-            <v-row>
-              <v-col cols="12" md="6"><v-text-field v-model="formData.saldo_monetario_anterior"
-                  label="Saldo Anterior ($)" readonly /></v-col>
-              <v-col cols="12" md="6"><v-text-field v-model="formData.saldo_monetario_al_momento_carga"
-                  label="Saldo Posterior ($)" readonly /></v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-
-        <v-card width="100%" title="Saldos de Combustible">
+        <v-card width="100%" title="Combustible">
           <v-card-text>
             <v-row>
               <v-col cols="12" md="6"><v-text-field v-model="formData.cantidad_combustible_anterior"
-                  label="Combustible Anterior (lts)" readonly /></v-col>
-              <v-col cols="12" md="6"><v-text-field v-model="formData.cantidad_combustible_al_momento_carga"
-                  label="Combustible Posterior (lts)" readonly /></v-col>
+                  label="Combustible Anterior a la salida (lts)" readonly /></v-col>
+              <v-col cols="12" md="6"><v-text-field v-model="formData.cantidad_combustible_al_momento_retiro"
+                  label="Combustible Posterior a la salida (lts)" readonly /></v-col>
             </v-row>
           </v-card-text>
         </v-card>

@@ -20,7 +20,7 @@ export default function (app) {
       light: {
         colors: {
           // 'primary': cookieRef('darkThemePrimaryColor', staticPrimaryColor).value,
-          primary: '#c5a86d',
+          primary: '#8C57FF',
           'primary-darken-1': '#d7b36b',
         },
       },

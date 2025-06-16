@@ -24,7 +24,7 @@ export default [
     icon: { icon: 'ri-gas-station-line' }, // ⛽️ Carga
   },
   {
-    title: 'Retiros de combustible',
+    title: 'Salidas de combustible',
     to: { name: 'retiros' },
     icon: { icon: 'ri-oil-line' }, // 🛢️ Retiro (más genérico)
   },

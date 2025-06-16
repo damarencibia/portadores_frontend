@@ -102,4 +102,32 @@ export const updateVehicle = async (vehicleId, data) => {
     }
 };
 
+export const fetchCdtReport = async (year, month, vehiculoId = null) => {
+  try {
+    const params = { year, month };
+    if (vehiculoId) {
+      params.vehiculo_id = vehiculoId;
+    }
+    const response = await $axios.get('/vehiculos/reportes/cdt', {
+      params,
+      responseType: 'blob' // Important: Set responseType to 'blob' to handle PDF
+    });
 
+    // Create a blob URL and a link to download the PDF
+    const fileURL = window.URL.createObjectURL(new Blob([response.data]));
+    const fileLink = document.createElement('a');
+
+    fileLink.href = fileURL;
+    fileLink.setAttribute('download', response.headers['content-disposition'].split('filename=')[1].replace(/"/g, '')); // Extract filename from headers
+    document.body.appendChild(fileLink);
+    fileLink.click();
+    fileLink.remove(); // Clean up the DOM
+
+    return { success: true, message: 'Reporte CDT generado exitosamente.' };
+  } catch (e) {
+    // Handle specific error messages from the backend if available
+    const errorMessage = e.response?.data?.message || e.message;
+    console.error("Error fetching CDT report:", errorMessage, e.response);
+    return { success: false, message: 'Error al generar el reporte CDT: ' + errorMessage };
+  }
+};

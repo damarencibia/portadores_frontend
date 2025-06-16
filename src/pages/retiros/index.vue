@@ -196,7 +196,7 @@ const userId = ref(getStoredUser()?.id || null)
 
 const formData = ref({
   tipo_combustible_id: null,
-  saldo_monetario_actual: null,
+  cantidad_combustible_actual: null,
   precioCombustible: null
 })
 
@@ -204,7 +204,7 @@ const formData = ref({
 const onTarjetaSeleccionada = (tarjeta) => {
   tarjetaSeleccionada.value = tarjeta
   formData.value.tipo_combustible_id = tarjeta.tipo_combustible_id
-  formData.value.saldo_monetario_actual = tarjeta.saldo_monetario_actual
+  formData.value.cantidad_combustible_actual = tarjeta.cantidad_actual
   formData.value.precioCombustible = tarjeta.saldo_monetario_actual
   showTarjetaSelectDialog.value = false
   console.log(tarjetaSeleccionada.value);
@@ -240,7 +240,8 @@ onMounted(() => {
 
 <template>
   <div>
-    <VCard title="Filtros de Retiros de Combustible"> <VCardText>
+    <VCard title="Filtros de Salidas de Combustible">
+      <VCardText>
         <VRow>
           <VCol cols="12" sm="3">
             <VAutocomplete v-model="selectedChofer" :items="choferes" item-title="nombre" item-value="id" label="Chofer"
@@ -271,7 +272,8 @@ onMounted(() => {
         <VRow class="w-100">
           <VCol cols="12" sm="6">
             <VTextField v-model="search" @input="onSearchInput" placeholder="Buscar retiros" density="compact"
-              prepend-inner-icon="ri-search-line" clearable /> </VCol>
+              prepend-inner-icon="ri-search-line" clearable />
+          </VCol>
           <v-col cols="12" md="3">
             <v-switch v-model="mostrarEliminados" label="Ver eliminados" color="primary" @change="getWithdrawals" inset
               density="compact" /> </v-col>
@@ -283,9 +285,11 @@ onMounted(() => {
             <SelectTarjetaDialog v-model="showTarjetaSelectDialog" :tarjetas="listaTarjetas"
               @select="onTarjetaSeleccionada" @cancel="showTarjetaSelectDialog = false" clearable />
 
-            <v-dialog v-model="showRetiroDialog" width="auto"> <RetiroCombustibleDialog :tarjetaId="tarjetaSeleccionada?.id" :registradoPorId="userId"
-                :saldoActual="formData.saldo_monetario_actual" @cancel="showRetiroDialog = false"
-                @confirm="registrarRetiro" /> </v-dialog>
+            <v-dialog v-model="showRetiroDialog" width="auto">
+              <RetiroCombustibleDialog :tarjetaId="tarjetaSeleccionada?.id" :registradoPorId="userId"
+                :cantidadActual="formData.cantidad_combustible_actual" @cancel="showRetiroDialog = false"
+                @confirm="registrarRetiro" />
+            </v-dialog>
 
 
           </VCol>

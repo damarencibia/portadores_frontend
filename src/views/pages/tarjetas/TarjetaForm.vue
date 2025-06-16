@@ -311,7 +311,7 @@ watch(
                   <v-text-field v-model="formData.consumo_cantidad_mensual_acumulado" label="Acumulado Mensual"
                     :error="parseFloat(formData.consumo_cantidad_mensual_acumulado) > parseFloat(formData.limite_consumo_mensual)"
                     :error-messages="parseFloat(formData.consumo_cantidad_mensual_acumulado) > parseFloat(formData.limite_consumo_mensual) ? 'Acumulado supera el límite' : ''"
-                    readonly required color="info" />
+                     required color="info" />
                 </v-col>
                 <!-- Límite Consumo Mensual -->
                 <v-col cols="12" md="6"><v-text-field v-model="formData.limite_consumo_mensual"

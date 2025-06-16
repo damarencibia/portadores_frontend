@@ -34,10 +34,10 @@
         <v-col cols="12">
           <v-text-field v-model="form.lugar" label="Lugar" required />
         </v-col>
-        <v-col cols="6">
+        <!-- <v-col cols="6">
           <v-text-field v-model="formattedNumeroTarjeta" label="Número de Tarjeta" required maxlength="19"
             @input="onInputTarjeta" @keypress="soloNumeros($event)" />
-        </v-col>
+        </v-col> -->
         <v-col cols="6">
           <v-text-field v-model="form.no_chip" label="No. Chip" required />
         </v-col>
@@ -81,7 +81,7 @@ const form = ref({
   cantidad: '',
   odometro: '',
   lugar: '',
-  numero_tarjeta: '',
+  // numero_tarjeta: '',
   no_chip: '',
   motivo: '',
 })
@@ -122,7 +122,7 @@ const formInvalido = computed(() => {
     !form.value.cantidad ||
     !form.value.odometro ||
     !form.value.lugar ||
-    !form.value.numero_tarjeta ||
+    // !form.value.numero_tarjeta ||
     !form.value.no_chip ||
     !form.value.motivo ||
     parseFloat(importe.value) <= 0 ||
@@ -144,18 +144,18 @@ const soloNumeros = (e) => {
 1234-5678-9012-3456, pero internamente debe mantenerse como:
 1234567890123456, sin afectar la BD.
 */
-const formattedNumeroTarjeta = computed({
-  get() {
-    const raw = form.value.numero_tarjeta.replace(/\D/g, ''); // Solo números
-    return raw
-      .substring(0, 16)
-      .replace(/(\d{4})(?=\d)/g, '$1-') // Inserta guión cada 4 dígitos, excepto al final
-      .slice(0, 19); // Máximo 16 números + 3 guiones
-  },
-  set(val) {
-    form.value.numero_tarjeta = val.replace(/\D/g, '').slice(0, 16); // Guarda sin guiones
-  }
-});
+// const formattedNumeroTarjeta = computed({
+//   get() {
+//     const raw = form.value.numero_tarjeta.replace(/\D/g, ''); // Solo números
+//     return raw
+//       .substring(0, 16)
+//       .replace(/(\d{4})(?=\d)/g, '$1-') // Inserta guión cada 4 dígitos, excepto al final
+//       .slice(0, 19); // Máximo 16 números + 3 guiones
+//   },
+//   set(val) {
+//     form.value.numero_tarjeta = val.replace(/\D/g, '').slice(0, 16); // Guarda sin guiones
+//   }
+// });
 const onInputTarjeta = (e) => {
   formattedNumeroTarjeta.value = e.target.value;
 };

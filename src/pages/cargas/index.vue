@@ -318,6 +318,58 @@ onMounted(() => {
             </v-tooltip>
           </div>
         </template>
+        <template #item.fecha="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.fecha }}
+          </span>
+        </template>
+        <template #item.hora="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.hora }}
+          </span>
+        </template>
+        <template #item.lugar="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.lugar }}
+          </span>
+        </template>
+        <template #item.tarjeta_combustible="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.tarjeta_combustible }}
+          </span>
+        </template>
+        <template #item.cantidad="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.fecha }}
+          </span>
+        </template>
+        <template #item.tipo_combustible="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.tipo_combustible }}
+          </span>
+        </template>
+        <template #item.odometro="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.odometro }}
+          </span>
+        </template>
+        <template #item.no_chip="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.no_chip }}
+          </span>
+        </template>
+        <template #item.chofer="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.chofer }}
+          </span>
+        </template>
+        <template #item.registrado_por="{ item }">
+          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+            {{ item.registrado_por }}
+          </span>
+        </template>
+
+
 
         <template #item.actions="{ item }">
           <v-btn variant="text" @click="goToCargasEdit(item.id)" icon="ri-eye-line"></v-btn>

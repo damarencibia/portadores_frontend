@@ -130,5 +130,27 @@ export const fetchUsersByEnterprise = async () => {
     }
 }
 
+export const fetchAccessedChargeIds = async () => {
+    let message = null;
+    let success = null;
+    let data = null; // This will contain { count: X, ids: [...] }
+    let meta = null;
+
+    try {
+        const request = await $axios.get(`/carga-combustibles/accessed-ids`);
+
+        success = request?.data?.success;
+        data = request?.data?.data; // Expecting { count: X, ids: [...] }
+        message = request?.data?.message;
+        meta = request?.data?.meta; // Likely null for this endpoint, but included for consistency
+        return { success, message, data, meta };
+
+    } catch (error) {
+        message = error?.response?.data?.message || error || "Ocurrió un error al obtener las cargas accedidas.";
+        success = false;
+        return { success, message, data, meta };
+    }
+}
+
 
 
