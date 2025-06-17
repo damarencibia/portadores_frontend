@@ -1,18 +1,17 @@
 <script setup>
-import { onMounted, ref, watch, inject } from 'vue' // Asegúrate de importar inject
-import { fetchChoferNames, fetchTipoCombustibles, fetchCharges, fetchTarjetas, fetchUsersByEnterprise } from './index'
+import { onMounted, ref, watch, inject } from 'vue'
+import { fetchChoferNames, fetchTipoCombustibles, fetchCharges, fetchTarjetas, fetchUsersByEnterprise } from './index' // Assuming 'index.js' for these fetches
 import { submitCargaCombustible } from '@/views/pages/tarjetas/TarjetaForm'
 import CargaCombustibleDialog from '@/pages/components/CargaCombustibleDialog.vue'
 import SelectTarjetaDialog from '@/pages/components/SelectTarjetaDialog.vue'
-import { getStoredUser } from '@/utils/api'
+import { getStoredUser, getUserProfile } from '@/utils/api' // Make sure this path is correct
 import { debounce } from 'lodash';
 import { useRouter } from 'vue-router';
 
-const giveMeASnack = inject('Snackbar:giveMeASnack')
+const giveMeASnack = inject('Snackbar:giveMeASnack');
 
 //data table
 const headers = ref([
-  // Ajuste en el título si el registro está eliminado
   { title: "estado", text: "estado", value: "estado" },
   { title: "fecha", text: "fecha", value: "fecha" },
   { title: "hora", text: "hora", value: "hora" },
@@ -29,8 +28,8 @@ const headers = ref([
 
 // --- Helpers para iconos y colores según estado (AHORA INCLUYEN LÓGICA PARA 'DELETED_AT') ---
 const estadoIcon = (item) => {
-  if (item.eliminado) { // Si hay un valor en deleted_at, significa que está eliminado lógicamente
-    return 'ri-delete-bin-line'; // Ícono para eliminado
+  if (item.eliminado) {
+    return 'ri-delete-bin-line';
   }
   switch (item.estado) {
     case 'pendiente':
@@ -45,8 +44,8 @@ const estadoIcon = (item) => {
 }
 
 const estadoColor = (item) => {
-  if (item.deleted_at) { // Si hay un valor en deleted_at, significa que está eliminado lógicamente
-    return 'secondary'; // Color para eliminado (puedes elegir 'grey', 'purple', etc.)
+  if (item.deleted_at) {
+    return 'secondary';
   }
   switch (item.estado) {
     case 'pendiente':
@@ -62,12 +61,12 @@ const estadoColor = (item) => {
 
 // Debounce para la búsqueda en tiempo real (300ms de delay)
 const debouncedSearch = debounce(() => {
-  getCharges() // Debe llamarse sin parámetros
+  getCharges() // Should be called without parameters
 }, 300)
 
 // Manejar cambios en el input de búsqueda
 const onSearchInput = () => {
-  pagination.value.page = 1; // Resetear a la primera página
+  pagination.value.page = 1; // Reset to the first page
   debouncedSearch();
 };
 
@@ -126,7 +125,7 @@ const getCharges = async () => {
   loading.value = false;
 }
 
-// Loaders
+// Loaders for filter options
 const loadChoferes = async () => {
   try {
     const res = await fetchChoferNames();
@@ -181,11 +180,14 @@ const goToCargasEdit = (cargaId) => {
 
 // observadores
 watch([selectedChofer, selectedTipoCombustible, selectedTarjeta, selectedUsuario, mostrarEliminados], () => {
+  // Reset page to 1 when filters change to ensure correct results
+  pagination.value.page = 1;
   getCharges();
 });
 
 watch(search, () => {
-  debouncedSearch()
+  // The debounce function already handles resetting page and calling getCharges
+  onSearchInput();
 })
 
 /* variables pertenecientes a CargaCombustibleDialog**************************/
@@ -193,6 +195,8 @@ const showTarjetaSelectDialog = ref(false)
 const showCargaDialog = ref(false)
 const tarjetaSeleccionada = ref(null) // objeto completo
 const userId = ref(getStoredUser()?.id || null)
+const userRole = ref(null); // This will hold the actual role string from API
+
 
 const formData = ref({
   tipo_combustible_id: null,
@@ -227,13 +231,34 @@ const registrarCarga = async (payload) => {
 };
 /*****************************************************************************/
 
+// --- ORDERED ONMOUNTED LIFECYCLE ---
+onMounted(async () => {
+  console.log(`🚀 [Cargas/index] Componente montado.`);
 
-onMounted(() => {
-  getCharges()
-  loadChoferes();
-  loadTiposCombustible();
-  loadTarjetas();
-  loadUsuarios();
+  // 1. Fetch user profile first to get the role
+  try {
+    const userProfileData = await getUserProfile();
+    if (userProfileData && userProfileData.roles) {
+      userRole.value = userProfileData.roles;
+      console.log("User role obtained:", userRole.value);
+    } else {
+      console.log("User profile or roles not found. Defaulting to null role.");
+      userRole.value = null;
+    }
+  } catch (error) {
+    console.error("Failed to fetch user profile on mount:", error);
+    userRole.value = null; // Ensure role is null on error
+  }
+
+  // 2. Load initial data for filters (these don't depend on userRole for their initial fetch)
+  // You can run these concurrently as they are independent fetches.
+  await Promise.all([
+    getCharges(),
+    loadChoferes(),
+    loadTiposCombustible(),
+    loadTarjetas(),
+    loadUsuarios(),
+  ]);
 })
 
 </script>
@@ -275,8 +300,8 @@ onMounted(() => {
               prepend-inner-icon="ri-search-line" clearable />
           </VCol>
           <v-col cols="12" md="3">
-            <v-switch v-model="mostrarEliminados" label="Ver eliminados" color="primary" @change="getCharges" inset
-              density="compact" />
+            <v-switch v-if="userRole === 'supervisor'" v-model="mostrarEliminados" label="Ver eliminados"
+              color="primary" @change="getCharges" inset density="compact" />
           </v-col>
 
           <VCol class="d-flex justify-end" cols="12" sm="3">
@@ -298,9 +323,23 @@ onMounted(() => {
         </VRow>
       </VCardText>
 
-      <VDataTableServer :items-per-page="pagination.itemsPerPage" :page="pagination.page" :headers="headers"
-        :loading="loading" loading-text="Cargando..." :items="charges" :items-length="totalProduct"
-        class="text-no-wrap rounded-0" @update:options="updateOptions">
+      <VDataTableServer :headers="[
+        { title: 'estado', key: 'estado' },
+        { title: 'fecha', key: 'fecha' },
+        { title: 'hora', key: 'hora' },
+        { title: 'lugar', key: 'lugar' },
+        { title: 'tarjeta', key: 'tarjeta_combustible' },
+        { title: 'cantidad', key: 'cantidad' },
+        { title: 'combustible', key: 'tipo_combustible' },
+        { title: 'odómetro', key: 'odometro' },
+        { title: 'chip', key: 'no_chip' },
+        { title: 'chofer', key: 'chofer' },
+        { title: 'registrador', key: 'registrado_por' },
+
+        ...(userRole === 'supervisor' ? [{ title: 'Acciones', key: 'actions', sortable: false }] : []),
+      ]" :items-per-page="pagination.itemsPerPage" :page="pagination.page" :loading="loading"
+        loading-text="Cargando..." :items="charges" :items-length="totalProduct" class="text-no-wrap rounded-0"
+        @update:options="updateOptions">
 
         <template v-slot:loading>
           <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
@@ -318,60 +357,59 @@ onMounted(() => {
             </v-tooltip>
           </div>
         </template>
-        <template #item.fecha="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+
+        <template v-if="userRole === 'supervisor'" #item.fecha="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.fecha }}
           </span>
         </template>
-        <template #item.hora="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+        <template v-if="userRole === 'supervisor'" #item.hora="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.hora }}
           </span>
         </template>
-        <template #item.lugar="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+        <template v-if="userRole === 'supervisor'" #item.lugar="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.lugar }}
           </span>
         </template>
-        <template #item.tarjeta_combustible="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+        <template v-if="userRole === 'supervisor'" #item.tarjeta_combustible="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.tarjeta_combustible }}
           </span>
         </template>
-        <template #item.cantidad="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
-            {{ item.fecha }}
+        <template v-if="userRole === 'supervisor'" #item.cantidad="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.cantidad }}
           </span>
         </template>
-        <template #item.tipo_combustible="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+        <template v-if="userRole === 'supervisor'" #item.tipo_combustible="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.tipo_combustible }}
           </span>
         </template>
-        <template #item.odometro="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+        <template v-if="userRole === 'supervisor'" #item.odometro="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.odometro }}
           </span>
         </template>
-        <template #item.no_chip="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+        <template v-if="userRole === 'supervisor'" #item.no_chip="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.no_chip }}
           </span>
         </template>
-        <template #item.chofer="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+        <template v-if="userRole === 'supervisor'" #item.chofer="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.chofer }}
           </span>
         </template>
-        <template #item.registrado_por="{ item }">
-          <span :class="{ 'font-weight-black': item.accesed === false || item.accesed === 0 }">
+        <template v-if="userRole === 'supervisor'" #item.registrado_por="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
             {{ item.registrado_por }}
           </span>
         </template>
 
-
-
-        <template #item.actions="{ item }">
+        <template v-if="userRole === 'supervisor'" #item.actions="{ item }">
           <v-btn variant="text" @click="goToCargasEdit(item.id)" icon="ri-eye-line"></v-btn>
         </template>
 
@@ -381,3 +419,6 @@ onMounted(() => {
 
   </div>
 </template>
+
+<style lang="scss">
+// Your styles here</style>

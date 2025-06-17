@@ -38,7 +38,7 @@ $axios.interceptors.response.use((response) => {
 export const login = async ({ name, password }) => {
   try {
     const response = await $axios.post('/login', { name, password })
-    
+
     if (!response.data.data?.token) {
       throw new Error('No se recibió el token de autenticación')
     }
@@ -73,7 +73,9 @@ export const register = async (userData) => {
       email: userData.email,
       phone: userData.phone,
       password: userData.password,
-      password_confirmation: userData.password_confirmation
+      password_confirmation: userData.password_confirmation,
+      company_name: userData.company_name, // Added company_name
+      company_address: userData.company_address, // Added company_address
     });
 
     // Check if response contains the expected data
@@ -87,9 +89,8 @@ export const register = async (userData) => {
 
     return {
       token: response.data.data.token,
-      user: response.data.data.user
+      user: response.data.data.user,
     };
-
   } catch (error) {
     console.error('Registration error:', error);
 
@@ -100,15 +101,13 @@ export const register = async (userData) => {
       const errorMessages = Object.entries(errors)
         .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
         .join('; ');
-      
+
       throw new Error(errorMessages || 'Validation failed');
     }
 
     // Handle other types of errors
     throw new Error(
-      error.response?.data?.message || 
-      error.message || 
-      'Registration failed. Please try again.'
+      error.response?.data?.message || error.message || 'Registration failed. Please try again.'
     );
   }
 };
@@ -136,9 +135,9 @@ export const getUserProfile = async () => {
   try {
     const response = await $axios.get('/user')
     console.log("getUserProfile activado:", response.data.data);
-    
+
     return response.data.data
-    
+
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Error al obtener el perfil')
   }
@@ -157,7 +156,7 @@ export const updateUserProfile = async (userData) => {
       localStorage.setItem('user', JSON.stringify(response.data.data.user))
     }
     console.log(response.data.data);
-    
+
     return response.data.data
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Error al actualizar el perfil')

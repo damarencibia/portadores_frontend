@@ -39,6 +39,15 @@
                 </VBtn>
               </VCol>
 
+              <VCol cols="12" class="text-center mt-4">
+                <p class="mb-0">
+                  ¿No tienes una cuenta?
+                  <router-link to="/registro" class="text-primary text-decoration-none">
+                    Crea una cuenta
+                  </router-link>
+                </p>
+              </VCol>
+
               <VCol cols="12" class="text-center">
                 <AuthProvider />
               </VCol>
@@ -122,7 +131,7 @@ const handleLogin = async () => {
         : 'US'
     }
 
-    router.push('/')
+    router.push('/cargas')
   } catch (error) {
     errorMessage.value = error.message
     console.error('Login error:', error)

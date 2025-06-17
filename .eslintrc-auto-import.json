@@ -369,6 +369,9 @@
     "getStoredUser": true,
     "loginWithProvider": true,
     "getAuthToken": true,
-    "register": true
+    "register": true,
+    "isSupervisor": true,
+    "getCompanyById": true,
+    "updateCompany": true
   }
 }

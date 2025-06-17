@@ -127,7 +127,6 @@ const loadEstadosTecnicos = async () => {
   estadoTecnico.value = [
     { id: 'activo', nombre: 'Activo' },
     { id: 'paralizado', nombre: 'Paralizado' },
-    { id: 'en_reparacion', nombre: 'En reparación' }
   ];
 };
 

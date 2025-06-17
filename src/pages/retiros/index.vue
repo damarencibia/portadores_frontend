@@ -11,21 +11,21 @@ import { useRouter } from 'vue-router';
 const giveMeASnack = inject('Snackbar:giveMeASnack')
 
 //data table
-const headers = ref([
-  // Ajuste en el título si el registro está eliminado
-  { title: "estado", text: "estado", value: "estado" },
-  { title: "fecha", text: "fecha", value: "fecha" },
-  { title: "hora", text: "hora", value: "hora" },
-  { title: "lugar", text: "lugar", value: "lugar" },
-  { title: "tarjeta", text: "tarjeta_combustible", value: "tarjeta_combustible" },
-  { title: "cantidad", text: "cantidad", value: "cantidad" },
-  { title: "combustible", text: "tipo_combustible", value: "tipo_combustible" },
-  { title: "odómetro", text: "odometro", value: "odometro" },
-  { title: "chip", text: "no_chip", value: "no_chip" },
-  { title: "chofer", text: "chofer", value: "chofer" },
-  { title: "registrador", text: "registrado_por", value: "registrado_por" },
-  { title: 'Actions', key: 'actions', sortable: false, },
-]);
+// const headers = ref([
+//   // Ajuste en el título si el registro está eliminado
+//   { title: "estado", text: "estado", value: "estado" },
+//   { title: "fecha", text: "fecha", value: "fecha" },
+//   { title: "hora", text: "hora", value: "hora" },
+//   { title: "lugar", text: "lugar", value: "lugar" },
+//   { title: "tarjeta", text: "tarjeta_combustible", value: "tarjeta_combustible" },
+//   { title: "cantidad", text: "cantidad", value: "cantidad" },
+//   { title: "combustible", text: "tipo_combustible", value: "tipo_combustible" },
+//   { title: "odómetro", text: "odometro", value: "odometro" },
+//   { title: "chip", text: "no_chip", value: "no_chip" },
+//   { title: "chofer", text: "chofer", value: "chofer" },
+//   { title: "registrador", text: "registrado_por", value: "registrado_por" },
+//   { title: 'Actions', key: 'actions', sortable: false, },
+// ]);
 
 // --- Helpers para iconos y colores según estado (AHORA INCLUYEN LÓGICA PARA 'DELETED_AT') ---
 const estadoIcon = (item) => {
@@ -193,6 +193,7 @@ const showTarjetaSelectDialog = ref(false)
 const showRetiroDialog = ref(false) // Changed showCargaDialog to showRetiroDialog
 const tarjetaSeleccionada = ref(null) // objeto completo
 const userId = ref(getStoredUser()?.id || null)
+const userRole = ref(null); // This will hold the actual role string from API
 
 const formData = ref({
   tipo_combustible_id: null,
@@ -228,12 +229,40 @@ const registrarRetiro = async (payload) => { // Changed function name
 /*****************************************************************************/
 
 
-onMounted(() => {
-  getWithdrawals() // Changed function call
-  loadChoferes();
-  loadTiposCombustible();
-  loadTarjetas();
-  loadUsuarios();
+onMounted(async () => {
+  console.log(`🚀 [Cargas/index] Componente montado.`);
+
+  // 1. Fetch user profile first to get the role
+  try {
+    const userProfileData = await getUserProfile();
+    if (userProfileData && userProfileData.roles) {
+      userRole.value = userProfileData.roles;
+      console.log("User role obtained:", userRole.value);
+    } else {
+      console.log("User profile or roles not found. Defaulting to null role.");
+      userRole.value = null;
+    }
+  } catch (error) {
+    console.error("Failed to fetch user profile on mount:", error);
+    userRole.value = null; // Ensure role is null on error
+  }
+
+  // 2. Load initial data for filters (these don't depend on userRole for their initial fetch)
+  // You can run these concurrently as they are independent fetches.
+  await Promise.all([
+    getWithdrawals(), // Changed function call
+    loadChoferes(),
+    loadTiposCombustible(),
+    loadTarjetas(),
+    loadUsuarios(),
+    getCharges(),
+  ]);
+
+  // 3. Finally, fetch charges. This might depend on 'mostrarEliminados' which itself depends on 'userRole'
+  // (via v-if in template). So calling it last ensures all other reactive data is ready.
+
+
+  console.log(`✅ [Cargas/index] Initial data loading complete.`);
 })
 
 </script>
@@ -275,8 +304,8 @@ onMounted(() => {
               prepend-inner-icon="ri-search-line" clearable />
           </VCol>
           <v-col cols="12" md="3">
-            <v-switch v-model="mostrarEliminados" label="Ver eliminados" color="primary" @change="getWithdrawals" inset
-              density="compact" /> </v-col>
+            <v-switch v-if="userRole === 'supervisor'" v-model="mostrarEliminados" label="Ver eliminados"
+              color="primary" @change="getWithdrawals" inset density="compact" /> </v-col>
 
           <VCol class="d-flex justify-end" cols="12" sm="3">
             <VBtn color="primary" prepend-icon="ri-add-line" @click="showTarjetaSelectDialog = true">
@@ -296,9 +325,25 @@ onMounted(() => {
         </VRow>
       </VCardText>
 
-      <VDataTableServer :items-per-page="pagination.itemsPerPage" :page="pagination.page" :headers="headers"
-        :loading="loading" loading-text="Cargando..." :items="withdrawals" :items-length="totalProduct"
-        class="text-no-wrap rounded-0" @update:options="updateOptions"> <template v-slot:loading>
+      <VDataTableServer :headers="[
+        { title: 'estado', key: 'estado' },
+        { title: 'fecha', key: 'fecha' },
+        { title: 'hora', key: 'hora' },
+        { title: 'lugar', key: 'lugar' },
+        { title: 'tarjeta', key: 'tarjeta_combustible' },
+        { title: 'cantidad', key: 'cantidad' },
+        { title: 'combustible', key: 'tipo_combustible' },
+        { title: 'odómetro', key: 'odometro' },
+        { title: 'chip', key: 'no_chip' },
+        { title: 'chofer', key: 'chofer' },
+        { title: 'registrador', key: 'registrado_por' },
+
+        ...(userRole === 'supervisor' ? [{ title: 'Acciones', key: 'actions', sortable: false }] : []),
+      ]" :items-per-page="pagination.itemsPerPage" :page="pagination.page" :loading="loading"
+        loading-text="Cargando..." :items="withdrawals" :items-length="totalProduct" class="text-no-wrap rounded-0"
+        @update:options="updateOptions"> <template v-slot:loading :headers="[
+          ...(userRole === 'supervisor' ? [{ title: 'Acciones', key: 'actions', sortable: false }] : []),
+        ]">
           <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
         </template>
 
@@ -315,7 +360,58 @@ onMounted(() => {
           </div>
         </template>
 
-        <template #item.actions="{ item }">
+        <template v-if="userRole === 'supervisor'" #item.fecha="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.fecha }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.hora="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.hora }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.lugar="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.lugar }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.tarjeta_combustible="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.tarjeta_combustible }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.cantidad="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.cantidad }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.tipo_combustible="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.tipo_combustible }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.odometro="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.odometro }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.no_chip="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.no_chip }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.chofer="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.chofer }}
+          </span>
+        </template>
+        <template v-if="userRole === 'supervisor'" #item.registrado_por="{ item }">
+          <span :class="{ 'font-weight-black': item.accessed === false || item.accessed === 0 }">
+            {{ item.registrado_por }}
+          </span>
+        </template>
+
+        <template v-if="userRole === 'supervisor'" #item.actions="{ item }">
           <v-btn variant="text" @click="goToWithdrawalsEdit(item.id)" icon="ri-eye-line"></v-btn> </template>
 
       </VDataTableServer>
