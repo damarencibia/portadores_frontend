@@ -24,6 +24,22 @@ export default [
     }
   },
   {
+    title: 'Choferes',
+    to: { name: 'choferes' },
+    icon: { icon: 'ri-steering-2-line' },
+    meta: {
+      requiresSupervisor: true,
+    }
+  },
+  {
+    title: 'Combustibles',
+    to: { name: 'combustibles' },
+    icon: { icon: 'ri-oil-fill' },
+    meta: {
+      requiresSupervisor: true,
+    }
+  },
+  {
     title: 'Vehiculos',
     to: { name: 'vehiculos' },
     icon: { icon: 'ri-car-line' },

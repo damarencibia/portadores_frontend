@@ -146,7 +146,7 @@ onMounted(async () => {
     loadChoferes(),
     loadTiposVehiculos(),
     loadTiposCombustible(),
-    loadEmpresas(),
+    loadEmpresas(),    
   ]);
   // Si estamos en modo SHOW o EDIT, cargar el vehículo y sus inoperatividades
   if (props.vehiculoId && (props.action === 'SHOW' || props.action === 'EDIT')) {
@@ -313,7 +313,7 @@ const handleDeleteInoperatividad = async () => {
             <!-- Chofer -->
             <v-col cols="12">
               <VAutocomplete v-model="formData.chofer_id" :items="choferes" item-title="nombre" item-value="id"
-                label="Chofer" clearable return-object :readonly="!canWrite" />
+                label="Chofer" clearable :readonly="!canWrite" />
             </v-col>
             <!-- Tipo Vehículo -->
             <v-col cols="12">

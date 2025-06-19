@@ -235,10 +235,10 @@ onMounted(() => {
 
           <v-divider class="my-3"></v-divider>
 
-          <!-- Botón para abrir el diálogo de agregar usuario -->
+          <!-- Botón para abrir el diálogo de agregar usuario
           <v-btn @click="showAddUserDialog = true" variant="text" rounded color="primary">
             Agregar Usuario
-          </v-btn>
+          </v-btn> -->
 
           <v-divider class="my-3"></v-divider>
 
